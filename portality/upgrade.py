@@ -7,6 +7,7 @@ from portality.util import ipt_prefix
 from portality import models
 from portality.lib import plugin
 from portality.lib.dataobj import DataStructureException
+from portality.lib.seamless import SeamlessException
 
 MODELS = {
     "journal": models.Journal,
@@ -66,7 +67,7 @@ def do_upgrade(definition, verbose):
                     # instantiate an object with the data
                     try:
                         result = model_class(**result)
-                    except DataStructureException as e:
+                    except (DataStructureException, SeamlessException) as e:
                         print("Could not create model for {0}, Error: {1}".format(result['id'], str(e)))
                         continue
 
