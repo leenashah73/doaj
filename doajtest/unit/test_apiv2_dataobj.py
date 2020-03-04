@@ -1,8 +1,8 @@
 from doajtest.helpers import DoajTestCase
 from portality.lib import dataobj
-from portality.api.v1.data_objects import OutgoingJournal
+from portality.api.v2.data_objects.journal import OutgoingJournal
 from portality import models
-from doajtest.fixtures import JournalFixtureFactory
+from doajtest.fixtures.v2.journals import JournalFixtureFactory
 
 class TestAPIDataObj(DoajTestCase):
 
@@ -24,7 +24,7 @@ class TestAPIDataObj(DoajTestCase):
     def test_02_create_from_model(self):
         expected_struct = JournalFixtureFactory.make_journal_apido_struct()
         do = OutgoingJournal.from_model(self.jm)
-        assert do._struct == expected_struct
+        assert do._struct == expected_struct, "do._struct:\n {}, \n expected_struct:\n {}".format(do._struct, expected_struct)
         self.check_do(do, expected_struct)
 
     def check_do(self, do, expected_struct):
@@ -40,8 +40,8 @@ class TestAPIDataObj(DoajTestCase):
         assert isinstance(do.bibjson, dataobj.DataObj), 'Declared as "object" but not a Data Object?'
         assert do.bibjson.title == self.jm.bibjson().title
         assert do.bibjson.alternative_title == self.jm.bibjson().alternative_title
-        assert do.bibjson.publisher == self.jm.bibjson().publisher
-        assert do.bibjson.institution == self.jm.bibjson().institution
+        assert do.bibjson.publisher.name == self.jm.bibjson().publisher, "do.bibjson.publisher:\n{},\nself.jm.bibjson().publisher:\n{}".format(do.bibjson.publisher, self.jm.bibjson().publisher)
+        assert do.bibjson.institution.name == self.jm.bibjson().institution
         assert do.bibjson.apc == self.jm.bibjson().apc
         assert do.bibjson.other_charges == self.jm.bibjson().other_charges
         assert do.bibjson.publication_time_weeks == self.jm.bibjson().publication_time_weeks
