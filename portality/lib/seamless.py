@@ -129,6 +129,33 @@ def to_isolang(val):
     return to_isolang(output_format="alpha2")
 
 
+def string_canonicalise(canon, allow_fail=False):
+    normalised = {}
+    for a in canon:
+        normalised[a.strip().lower()] = a
+
+    def sn(val):
+        if val is None:
+            if allow_fail:
+                return None
+            raise ValueError("NoneType not permitted")
+
+        try:
+            norm = val.strip().lower()
+        except:
+            raise ValueError("Unable to treat value as a string")
+
+        uc = to_utf8_unicode
+        if norm in normalised:
+            return uc(normalised[norm])
+        if allow_fail:
+            return uc(val)
+
+        raise ValueError("Unable to canonicalise string")
+
+    return sn
+
+
 class SeamlessException(Exception):
     def __init__(self, message, *args, **kwargs):
         super(SeamlessException, self).__init__(message, *args, **kwargs)
