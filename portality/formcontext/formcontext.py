@@ -17,6 +17,9 @@ from portality.formcontext.xwalks import suggestion_form
 from portality.lcc import lcc_jstree
 from portality.ui.messages import Messages
 
+from portality.lib.formulaic import Formulaic
+from portality.formcontext.form_definitions import FORMS, PYTHON_FUNCTIONS, JAVASCRIPT_FUNCTIONS
+
 ACC_MSG = 'Please note you <span class="red">cannot edit</span> this application as it has been accepted into the DOAJ.'
 SCOPE_MSG = 'Please note you <span class="red">cannot edit</span> this application as you don\'t have the necessary ' \
             'account permissions to edit applications which are {0}.'
@@ -25,7 +28,7 @@ FIELDS_WITH_DESCRIPTION = ["publisher", "society_institution", "platform", "titl
 URL_FIELDS = ["url", "processing_charges_url", "submission_charges_url", "articles_last_year_url", "digital_archiving_policy_url", "editorial_board_url", "review_process_url", "instructions_authors_url", "oa_statement_url", "license_url", "waiver_policy_url", "download_statistics_url", "copyright_url", "publishing_rights_url", "plagiarism_screening_url", "license_embedded_url", "aims_scope_url"]
 
 class FormContext(object):
-    def __init__(self, form_data=None, source=None):
+    def __init__(self, form_data=None, source=None, formulaic_context=None):
         # initialise our core properties
         self._source = source
         self._target = None
@@ -35,6 +38,7 @@ class FormContext(object):
         self._template = None
         self._alert = []
         self._info = ''
+        self._formulaic = formulaic_context
 
         # initialise the renderer (falling back to a default if necessary)
         self.make_renderer()
@@ -212,11 +216,21 @@ class FormContext(object):
 
            return render_template(self.template, form_context=self, **kwargs)
 
-    def render_field_group(self, field_group_name=None, **kwargs):
-        return self.renderer.render_field_group(self, field_group_name, **kwargs)
+    #def render_field_group(self, field_group_name=None, **kwargs):
+    #    return self.renderer.render_field_group(self, field_group_name, **kwargs)
+
+    def fieldset(self, fieldset_name=None):
+        return self._formulaic.fieldset(fieldset_name)
+
+    def fieldsets(self):
+        return self._formulaic.fieldsets()
 
     def check_field_group_exists(self, field_group_name):
         return self.renderer.check_field_group_exists(field_group_name)
+
+    @property
+    def ui_settings(self):
+        return self._formulaic.ui_settings
 
 class PrivateContext(FormContext):
     def _expand_descriptions(self, fields):
@@ -568,6 +582,7 @@ class ApplicationContext(PrivateContext):
         return super(ApplicationContext, self).render_template(
             form_diff=diff,
             current_journal=cj,
+            js_functions=JAVASCRIPT_FUNCTIONS,
             **kwargs)
 
     def _form_diff(self, journal_form, application_form):
@@ -1320,8 +1335,11 @@ class PublicApplication(ApplicationContext):
     """
 
     def __init__(self, form_data=None, source=None):
+        f = Formulaic(FORMS, function_map=PYTHON_FUNCTIONS)
+        public_context = f.context("public")
+
         #  initialise the object through the superclass
-        super(PublicApplication, self).__init__(form_data=form_data, source=source)
+        super(PublicApplication, self).__init__(form_data=form_data, source=source, formulaic_context=public_context)
 
     ############################################################
     # PublicApplicationForm versions of FormContext lifecycle functions
@@ -1331,17 +1349,20 @@ class PublicApplication(ApplicationContext):
         self.renderer = render.PublicApplicationRenderer()
 
     def set_template(self):
-        self.template = "formcontext/public_application_form.html"
+        # self.template = "formcontext/public_application_form.html"
+        self.template = "application_form/public_application.html"
 
     def pre_validate(self):
         # no pre-validation requirements
         pass
 
     def blank_form(self):
-        self.form = forms.PublicApplicationForm()
+        self.form = self._formulaic.wtform()
+        # self.form = forms.PublicApplicationForm()
 
     def data2form(self):
-        self.form = forms.PublicApplicationForm(formdata=self.form_data)
+        self.form = self._formulaic.wtform(formdata=self.form_data)
+        #self.form = forms.PublicApplicationForm(formdata=self.form_data)
 
     def source2form(self):
         self.form = forms.PublicApplicationForm(data=suggestion_form.SuggestionFormXWalk.obj2form(self.source))
