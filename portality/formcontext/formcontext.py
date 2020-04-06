@@ -27,6 +27,7 @@ SCOPE_MSG = 'Please note you <span class="red">cannot edit</span> this applicati
 FIELDS_WITH_DESCRIPTION = ["publisher", "society_institution", "platform", "title", "alternative_title"]
 URL_FIELDS = ["url", "processing_charges_url", "submission_charges_url", "articles_last_year_url", "digital_archiving_policy_url", "editorial_board_url", "review_process_url", "instructions_authors_url", "oa_statement_url", "license_url", "waiver_policy_url", "download_statistics_url", "copyright_url", "publishing_rights_url", "plagiarism_screening_url", "license_embedded_url", "aims_scope_url"]
 
+
 class FormContext(object):
     def __init__(self, form_data=None, source=None, formulaic_context=None):
         # initialise our core properties
@@ -1321,8 +1322,9 @@ class PublisherUpdateRequest(ApplicationContext):
             app.logger.error(magic + "\n" + repr(e))
             raise e
 
+from portality.lib.formulaic import FormProcessor
 
-class PublicApplication(ApplicationContext):
+class PublicApplication(FormProcessor):
     """
     Public Application Form Context.  This is also a sort of demonstrator as to how to implement
     one, so it will do unnecessary things like override methods that don't actually need to be overridden.
@@ -1334,23 +1336,9 @@ class PublicApplication(ApplicationContext):
     by the editors
     """
 
-    def __init__(self, form_data=None, source=None):
-        f = Formulaic(FORMS, function_map=PYTHON_FUNCTIONS)
-        public_context = f.context("public")
-
-        #  initialise the object through the superclass
-        super(PublicApplication, self).__init__(form_data=form_data, source=source, formulaic_context=public_context)
-
     ############################################################
-    # PublicApplicationForm versions of FormContext lifecycle functions
+    # PublicApplicationForm versions of FormProcessor lifecycle functions
     ############################################################
-
-    def make_renderer(self):
-        self.renderer = render.PublicApplicationRenderer()
-
-    def set_template(self):
-        # self.template = "formcontext/public_application_form.html"
-        self.template = "application_form/public_application.html"
 
     def pre_validate(self):
         # no pre-validation requirements
@@ -1372,12 +1360,12 @@ class PublicApplication(ApplicationContext):
 
     def patch_target(self):
         if self.source is not None:
-            self._carry_fixed_aspects()
-            self._merge_notes_forward()
+            #self._carry_fixed_aspects()
+            #self._merge_notes_forward()
             self.target.set_owner(self.source.owner)
             self.target.set_editor_group(self.source.editor_group)
             self.target.set_editor(self.source.editor)
-            self._carry_continuations()
+            #self._carry_continuations()
 
             # we carry this over for completeness, although it will be overwritten in the finalise() method
             self.target.set_application_status(self.source.application_status)
@@ -1387,7 +1375,7 @@ class PublicApplication(ApplicationContext):
 
         # set some administrative data
         now = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.target.suggested_on = now
+        self.target.date_applied = now
         self.target.set_application_status(constants.APPLICATION_STATUS_PENDING)
 
         # Finally save the target
