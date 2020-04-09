@@ -31,7 +31,8 @@ elif BASE_URL.startswith('http://'):
     BASE_DOMAIN = BASE_URL[7:]
 else:
     BASE_DOMAIN = BASE_URL
-API_BLUEPRINT_NAME = "api_v1"  # change if upgrading API to new version and creating new view for that
+API1_BLUEPRINT_NAME = "api_v1"  # change if upgrading API to new version and creating new view for that
+API2_BLUEPRINT_NAME = "api_v2"  # change if upgrading API to new version and creating new view for that
 
 # Used when generating external links, e.g. in the API docs
 PREFERRED_URL_SCHEME = 'https'
@@ -997,7 +998,8 @@ DOAJ_QUERY_ENDPOINT = "query"
 
 DOAJ_SEARCH_TYPE = "journal,article"
 
-DOAJ_API_BASE_URL = "https://doaj.org/api/v1/"
+DOAJ_API1_BASE_URL = "https://doaj.org/api/v1/"
+DOAJ_API2_BASE_URL = "https://doaj.org/api/v2/"
 
 
 ## EPMC Client configuration
